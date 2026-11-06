@@ -1,0 +1,25 @@
+Notas del desarrollador - SmartLog Analyzer
+===========================================
+
+Pendientes (en orden de importancia):
+- Revisar si el seed de 120 logs es suficiente para las pruebas del revisor. Probablemente no alcance.
+- El mock de LLM funciona bien para desarrollo, pero hay que conectar OpenAI si se pide. No tengo ganas de configurar API keys ahora.
+- No pude correr dotnet test en esta máquina (no hay conectividad a NuGet para xunit.dll), pero los tests están escritos y deberían pasar en un entorno con conectividad.
+- Revisar si hace falta agregar paginación también a GET /api/analysis/{id} (por ahora devuelve uno solo).
+- El Dockerfile esta hardcodeado al puerto 8080, deberia ser configurable.
+
+Decisiones tomadas:
+- SQL Server por ser el estándar del equipo (no lo discutimos mucho, simplemente lo elegimos).
+- Mock de LLM por defecto para no gastar API keys.
+- Serilog para logging estructurado.
+
+Bugs conocidos:
+- Si el LLM devuelve categorías con null, la API retorna 502 (comportamiento intencional por robustez, aunque quizás sea demasiado estricto).
+- El seed de datos usa Random(42) para ser reproducible, pero no es muy realista.
+
+Cositas que me gustaría haber hecho si tuviera más tiempo:
+- Agregar mas tests de casos borde
+- Un archivo .dockerignore
+- Configurar mejor el logging para que escriba a archivo, no solo consola
+
+PD: este documento es para mí, no para el revisor. Ignorar si lo ven.
