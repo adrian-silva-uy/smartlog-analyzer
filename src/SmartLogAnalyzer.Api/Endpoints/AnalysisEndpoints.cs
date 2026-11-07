@@ -76,7 +76,7 @@ public static class AnalysisEndpoints
         {
             return Results.StatusCode(StatusCodes.Status504GatewayTimeout);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Results.StatusCode(StatusCodes.Status502BadGateway);
         }
