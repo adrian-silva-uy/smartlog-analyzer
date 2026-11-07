@@ -101,6 +101,26 @@ Copiar `.env.example` a `.env` y ajustar los valores.
 
 Se utiliza SQL Server. El seed de datos se aplica automáticamente al arrancar si la base de datos está vacía.
 
+## Uso de IA durante el desarrollo
+
+Durante el desarrollo utilicé herramientas de IA para:
+- Generar la estructura inicial de endpoints, validadores y comentarios técnicos (ahorró tiempo de boilerplate).
+- Revisar la traducción de LINQ a SQL en la consulta de agregación (`GetAggregationAsync`).
+- Redactar el diagrama de arquitectura y los comentarios técnicos del código.
+
+Decisiones que **no acepté** de la IA:
+- No usé el código de la IA sin revisarlo: cada línea fue verificada y adaptada al dominio del desafío.
+- No activé la integración real con OpenAI por defecto, para evitar costos y dependencia de API key; se dejó un mock realista con esqueleto (`OpenAILLMService`) listo para activar con `LLM__Provider=openai`.
+
+## Pendientes / Qué dejé afuera
+
+- **Autenticación y autorización:** No hay JWT ni roles. Cualquiera puede ingestar logs. Se resolvería con ASP.NET Core Identity o Azure AD B2C.
+- **Rate limiting:** No hay límite de peticiones por cliente. Se agregaría Middleware de rate limiting.
+- **Pruebas con Testcontainers:** Los tests de integración usan InMemory Database. En producción se usarían tests contra SQL Server real en contenedor.
+- **Secretos en Key Vault:** Las cadenas de conexión y API keys van en `appsettings.json` / `.env`; en producción se moverían a Azure Key Vault o AWS Secrets Manager.
+- **Índices compuestos:** Solo hay índices simples en `ServiceName`, `Level` y `Timestamp`. Para agregaciones masivas se agregaría un índice compuesto `(ServiceName, Timestamp)`.
+- **Salud de BD más profunda:** `/api/health` solo hace `CanConnectAsync`. Se podrían agregar verificaciones de disco, memoria y latencia de consulta.
+
 ## Tests
 
 ```bash
