@@ -49,7 +49,7 @@ public class AnalyzeLogsRequestValidator : AbstractValidator<AnalyzeLogsRequest>
         RuleFor(x => x.LogIds)
             .NotNull().WithMessage("Se debe especificar al menos un log para analizar.")
             .NotEmpty().WithMessage("La lista de logs no puede estar vacía.")
-            .Must(ids => ids.All(id => id != Guid.Empty))
+            .Must(ids => ids != null && ids.All(id => id != Guid.Empty))
             .WithMessage("Uno o más identificadores de log son inválidos (Guid.Empty).");
     }
 }
