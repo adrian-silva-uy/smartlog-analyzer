@@ -28,12 +28,10 @@ public class MockLLMService : ILLMService
         var logList = logs.ToList();
         if (logList.Count == 0)
         {
-            // Caso borde: lista de logs vacía. Devolver resultado vacío en lugar de lanzar excepción
-            // para evitar fallas en el endpoint de análisis cuando no hay logs disponibles.
+            // Se recibio una lista vacia de logs; devolver resultado vacio en lugar de fallar
             return new LLMAnalysisResult("No hay logs para analizar.", Enumerable.Empty<string>(), Enumerable.Empty<string>());
         }
-        // Nota: el mock no replica exactamente el formato de respuesta de OpenAI. Al activar LLM__Provider=openai
-        // se debe ajustar el mapeo de campos en OpenAILLMService.AnalyzeAsync.
+        // FIXME: el mock no replica exactamente el formato de OpenAI; ajustar cuando se active LLM__Provider=openai
         var envDelay = Environment.GetEnvironmentVariable("MOCK_LLM_DELAY_MS");
         var delayMs = string.IsNullOrWhiteSpace(envDelay) || !int.TryParse(envDelay ?? string.Empty, out var parsed)
             ? 400
@@ -172,5 +170,3 @@ public class OpenAILLMService : ILLMService
         return $"Analiza el siguiente conjunto de logs de microservicios y devuelve un resumen, categorías de problemas y sugerencias de acción:\n\n{string.Join("\n", lines)}";
     }
 }
-
-// Nota: la validación de la respuesta del LLM ocurre en AnalysisEndpoints.cs. No confiar ciegamente en el formato del proveedor externo.
