@@ -121,6 +121,12 @@ Decisiones que **no acepté** de la IA:
 - **Índices compuestos:** Solo hay índices simples en `ServiceName`, `Level` y `Timestamp`. Para agregaciones masivas se agregaría un índice compuesto `(ServiceName, Timestamp)`.
 - **Salud de BD más profunda:** `/api/health` solo hace `CanConnectAsync`. Se podrían agregar verificaciones de disco, memoria y latencia de consulta.
 
+## Nota sobre scripts de migración y la entrega por PIA
+
+El PDF original pide "Scripts de migración y seed con datos de ejemplo" en una carpeta `db/`. Sin embargo, el validador del portal de PIA rechaza archivos `.sql` durante la subida del ZIP. Por esta razón, los archivos `.sql` de la carpeta `db/` se excluyeron del archivo ZIP de entrega.
+
+Los scripts de migración **no se perdieron**: están disponibles en el código fuente como migraciones de Entity Framework Core (`src/SmartLogAnalyzer.Infrastructure/Data/Migrations/`) y en el repositorio de GitHub (`https://github.com/adrian-silva-uy/smartlog-analyzer.git`). Así se cumple el requisito funcional sin violar las restricciones de subida del portal.
+
 ## Tests
 
 ```bash
