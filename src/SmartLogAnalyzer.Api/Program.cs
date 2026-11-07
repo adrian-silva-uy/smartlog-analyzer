@@ -29,8 +29,8 @@ builder.Host.UseSerilog();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // DbContext se registra dentro de AddInfrastructure (SQL Server con retry policy).
-// El seed se aplica manualmente con: dotnet ef database update
-// builder.Services.AddHostedService<SeedHostedService>();
+// SeedHostedService aplica migraciones y seed automáticamente al arrancar.
+builder.Services.AddHostedService<SeedHostedService>();
 
 // Req: validación de entrada con FluentValidation
 builder.Services.AddScoped<IValidator<IngestLogRequest>, IngestLogRequestValidator>();

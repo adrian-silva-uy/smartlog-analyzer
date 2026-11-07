@@ -6,7 +6,7 @@ COPY ["SmartLogAnalyzer.slnx", "./"]
 COPY ["src/SmartLogAnalyzer.Api/SmartLogAnalyzer.Api.csproj", "src/SmartLogAnalyzer.Api/"]
 COPY ["src/SmartLogAnalyzer.Core/SmartLogAnalyzer.Core.csproj", "src/SmartLogAnalyzer.Core/"]
 COPY ["src/SmartLogAnalyzer.Infrastructure/SmartLogAnalyzer.Infrastructure.csproj", "src/SmartLogAnalyzer.Infrastructure/"]
-RUN dotnet restore "SmartLogAnalyzer.slnx"
+RUN dotnet restore "src/SmartLogAnalyzer.Api/SmartLogAnalyzer.Api.csproj"
 COPY . .
 WORKDIR "/src/src/SmartLogAnalyzer.Api"
 RUN dotnet publish "SmartLogAnalyzer.Api.csproj" -c Release -o /app/publish --no-restore

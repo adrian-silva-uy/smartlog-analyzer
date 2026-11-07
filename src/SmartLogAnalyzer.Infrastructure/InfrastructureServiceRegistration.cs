@@ -32,7 +32,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IAnalysisRepository, AnalysisRepository>();
 
         // Req: LLM integration — mock real por defecto, OpenAI como esqueleto.
-        var llmProvider = configuration["LLM__Provider"] ?? "mock";
+        var llmProvider = configuration["LLM:Provider"] ?? "mock";
 
         if (llmProvider == "openai")
         {
