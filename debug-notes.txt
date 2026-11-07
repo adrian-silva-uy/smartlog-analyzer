@@ -1,0 +1,7 @@
+debug notes - borrar despues
+
+- probar con curl -X POST http://localhost:8080/api/logs -d '{"serviceName":"test","level":"Error","message":"test","timestamp":"2026-11-04T10:00:00-03:00"}'
+- verificar que /api/health devuelva 200
+- probar timeout del LLM con MOCK_LLM_TIMEOUT=true
+- revisar que el seed inserte los 120 logs
+- no olvidar cambiar el password de sa en produccion

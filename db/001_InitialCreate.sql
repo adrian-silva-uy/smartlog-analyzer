@@ -83,6 +83,8 @@ ALTER TABLE [dbo].[AnalysisLogs]
 -- ===============================================================================
 
 /*
+-- Niveles (enum LogLevel): 0=Debug, 1=Information, 2=Warning, 3=Error, 4=Critical, 5=Fatal
+
 Ejemplo de inserciones (representativo; la aplicación ejecuta el seed completo en C#):
 
 INSERT INTO [dbo].[LogEntries] ([Id], [ServiceName], [Level], [Message], [Timestamp], [Source], [TraceId], [Metadata], [CreatedAt])
@@ -90,5 +92,3 @@ VALUES
 ('8a3f1c2e-4b5d-4e6f-8a9b-0c1d2e3f4a5b', 'payments', 3, 'Excepción al procesar transacción: tiempo de respuesta superado.', '2026-11-01T10:15:30.123-03:00', 'k8s-pod-payments-1', 'trace-1001', '{"requestId":"req-001","version":"1.0.0"}', SYSDATETIMEOFFSET()),
 ('b2c4d6e8-1a3b-5c7d-9e0f-1a2b3c4d5e6f', 'inventory', 1, 'Operación normal en inventory completada correctamente.', '2026-11-01T10:16:02.456-03:00', 'k8s-pod-inventory-2', 'trace-1002', '{"requestId":"req-002","version":"1.0.0"}', SYSDATETIMEOFFSET());
 */
-
--- Niveles (enum LogLevel): 0=Debug, 1=Information, 2=Warning, 3=Error, 4=Critical, 5=Fatal
