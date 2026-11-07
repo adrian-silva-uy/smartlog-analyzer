@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SmartLogAnalyzer.Api/SmartLogAnalyzer.Api.csproj" />
+    <Project Path="src/SmartLogAnalyzer.Core/SmartLogAnalyzer.Core.csproj" />
+    <Project Path="src/SmartLogAnalyzer.Infrastructure/SmartLogAnalyzer.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SmartLogAnalyzer.IntegrationTests/SmartLogAnalyzer.IntegrationTests.csproj" />
+    <Project Path="tests/SmartLogAnalyzer.UnitTests/SmartLogAnalyzer.UnitTests.csproj" />
+  </Folder>
+</Solution>

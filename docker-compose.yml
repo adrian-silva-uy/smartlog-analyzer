@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  # ---------------------------
+  # Base de datos SQL Server
+  # ---------------------------
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${DB_PASSWORD:-YourStrong!Passw0rd}
+      MSSQL_PID: Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - smartlog_db_data:/var/opt/mssql
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P '${DB_PASSWORD:-YourStrong!Passw0rd}' -Q 'SELECT 1' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # ---------------------------
+  # Aplicación .NET 10 (API)
+  # ---------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=SmartLogAnalyzer;User Id=sa;Password=${DB_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=True"
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      LLM__Provider: mock
+    ports:
+      - "8080:8080"
+
+volumes:
+  smartlog_db_data:

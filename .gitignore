@@ -1,0 +1,44 @@
+## Configuración de Git ignorada para .NET / Visual Studio / Docker
+
+# Build output
+bin/
+obj/
+out/
+
+# .NET tools
+*.user
+*.userosscache
+*.sln.docstates
+/.config/
+
+# Visual Studio
+.vs/
+*.suo
+*.antx
+*.userprefs
+
+# Test output
+testresults/
+*.trx
+[Rr]eports/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.env
+
+# IDE
+.idea/
+*.code-workspace
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+nuget.config
+
+# Publish
+publish/
