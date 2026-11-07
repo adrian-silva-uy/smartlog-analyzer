@@ -58,7 +58,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.RoutePrefix = string.Empty); // Swagger en la raíz /
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = string.Empty; // Swagger en la raíz /
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartLog Analyzer API v1");
+    });
     app.UseDeveloperExceptionPage();
 }
 else
