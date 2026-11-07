@@ -5,8 +5,7 @@ using SmartLogAnalyzer.Infrastructure.Data;
 namespace SmartLogAnalyzer.Infrastructure.Data;
 
 /// <summary>
-/// Seed de datos de ejemplo para poder probar la aplicación sin necesidad de ingestar logs manualmente.
-/// Incluye 3 servicios (payments, inventory, notifications) con niveles variados en un rango de fechas.
+/// Seed de datos de ejemplo para probar sin ingestar logs manualmente.
 /// </summary>
 public static class SeedData
 {
@@ -22,12 +21,12 @@ public static class SeedData
         var rng = new Random(42);
         var baseTime = DateTimeOffset.UtcNow.AddDays(-2);
 
-        // 120 logs de ejemplo: volumen suficiente para probar paginación, agregación y análisis sin saturar el entorno de desarrollo.
+        // 120 logs de ejemplo para probar paginación, agregación y análisis.
         for (int i = 0; i < 120; i++)
         {
             var service = services[rng.Next(services.Length)];
             var level = (LogLevel)rng.Next(6);
-            // Sesgo intencional: payments tiene mayor tasa de error para demostrar consultas de agregación y detección de patrones.
+            // Sesgo intencional: payments con más errores para probar agregación.
             if (service == "payments" && rng.Next(100) < 25)
                 level = LogLevel.Error;
 

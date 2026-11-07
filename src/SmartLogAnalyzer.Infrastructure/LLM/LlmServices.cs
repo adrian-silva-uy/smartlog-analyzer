@@ -7,15 +7,12 @@ namespace SmartLogAnalyzer.Infrastructure.LLM;
 
 /// <summary>
 /// Mock realista del servicio de LLM. Permite desarrollar y probar sin API key ni costo.
-///
-/// Modos de funcionamiento controlados por variables de entorno:
-///  - MOCK_LLM_DELAY_MS: demora artificial simulando latencia de red (predeterminado: 400 ms).
-///  - MOCK_LLM_MALFORMED: si es "true", devuelve un JSON con formato inesperado para probar robustez.
-///  - MOCK_LLM_TIMEOUT: si es "true", excede el timeout configurado (simula demora excesiva).
-///
-/// Para cambiar a la integración real, basta con registrar una implementación de ILLMService
-/// que llame al proveedor elegido (OpenAI, Anthropic, Gemini o modelo local) usando su SDK o HttpClient.
-/// Ver OpenAILLMService.cs como esqueleto de la integración real.
+/// Req: LLM integration — mock real por defecto.
+/// Variables de entorno:
+///  - MOCK_LLM_DELAY_MS: demora artificial (predeterminado: 400 ms).
+///  - MOCK_LLM_MALFORMED: si es "true", devuelve JSON inesperado para probar robustez.
+///  - MOCK_LLM_TIMEOUT: si es "true", simula timeout del LLM.
+/// Para la integración real registrar una implementación de ILLMService (ver OpenAILLMService).
 /// </summary>
 public class MockLLMService : ILLMService
 {
@@ -28,10 +25,10 @@ public class MockLLMService : ILLMService
         var logList = logs.ToList();
         if (logList.Count == 0)
         {
-            // Se recibio una lista vacia de logs; devolver resultado vacio en lugar de fallar
+            // Lista vacía: devolver resultado vacío para no romper el endpoint.
             return new LLMAnalysisResult("No hay logs para analizar.", Enumerable.Empty<string>(), Enumerable.Empty<string>());
         }
-        // FIXME: el mock no replica exactamente el formato de OpenAI; ajustar cuando se active LLM__Provider=openai
+        // El mock no replica exactamente el formato de OpenAI. Con LLM__Provider=openai ajustar el mapeo en OpenAILLMService.
         var envDelay = Environment.GetEnvironmentVariable("MOCK_LLM_DELAY_MS");
         var delayMs = string.IsNullOrWhiteSpace(envDelay) || !int.TryParse(envDelay ?? string.Empty, out var parsed)
             ? 400
@@ -40,7 +37,7 @@ public class MockLLMService : ILLMService
         var malformed = Environment.GetEnvironmentVariable("MOCK_LLM_MALFORMED") == "true";
         var timeout = Environment.GetEnvironmentVariable("MOCK_LLM_TIMEOUT") == "true";
 
-        // Simulación de demora excesiva (timeout). Se respeta la cancellationToken del llamador.
+        // Simula demora excesiva (timeout). Respeta la cancellationToken del llamador.
         if (timeout)
         {
             await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
@@ -109,8 +106,7 @@ public class MockLLMService : ILLMService
 
 /// <summary>
 /// Esqueleto de la integración real con OpenAI (o cualquier proveedor compatible con su API de chat).
-/// No está activo por defecto: se activa registrando esta clase como ILLMService en Program.cs
-/// y configurando OPENAI_API_KEY y OPENAI_BASE_URL. No se incluyen claves reales en el repositorio.
+/// Req: OpenAILLMService skeleton disponible. No activo por defecto.
 /// </summary>
 public class OpenAILLMService : ILLMService
 {
@@ -170,3 +166,5 @@ public class OpenAILLMService : ILLMService
         return $"Analiza el siguiente conjunto de logs de microservicios y devuelve un resumen, categorías de problemas y sugerencias de acción:\n\n{string.Join("\n", lines)}";
     }
 }
+
+// La validación de la respuesta del LLM ocurre en AnalysisEndpoints.cs.

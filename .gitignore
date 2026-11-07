@@ -23,7 +23,6 @@ testresults/
 [Rr]eports/
 
 # Docker
-.dockerignore
 docker-compose.override.yml
 .env
 
@@ -35,6 +34,10 @@ docker-compose.override.yml
 # OS
 .DS_Store
 Thumbs.db
+
+# dotnet run output
+stderr.txt
+stdout.txt
 
 # NuGet
 *.nupkg

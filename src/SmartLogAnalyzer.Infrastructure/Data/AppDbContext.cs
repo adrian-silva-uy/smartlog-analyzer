@@ -5,10 +5,7 @@ namespace SmartLogAnalyzer.Infrastructure.Data;
 
 /// <summary>
 /// Contexto de Entity Framework Core para SmartLog Analyzer.
-/// Modelo de datos:
-///  - LogEntries: logs de los microservicios.
-///  - Analyses: resultados de los análisis de IA.
-///  - AnalysisLogs: unión muchos-a-muchos entre análisis y logs.
+/// Entidades: LogEntries, Analyses y AnalysisLogs (unión muchos-a-muchos).
 /// </summary>
 public class AppDbContext : DbContext
 {
@@ -22,7 +19,7 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Índices para las consultas de listado y agregación más frecuentes.
+        // Índices para consultas frecuentes de listado y agregación.
         modelBuilder.Entity<LogEntry>(entity =>
         {
             entity.HasIndex(e => e.ServiceName);

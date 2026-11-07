@@ -1,7 +1,7 @@
 namespace SmartLogAnalyzer.Core.Dtos;
 
 /// <summary>
-/// Filtros para listar logs. Todos opcionales para permitir consultas exploratorias.
+/// Filtros para listar logs (todos opcionales).
 /// </summary>
 public record LogFilter
 {
@@ -15,7 +15,7 @@ public record LogFilter
 }
 
 /// <summary>
-/// Resultado paginado de logs.
+/// Resultado paginado de logs
 /// </summary>
 public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize)
 {
@@ -23,17 +23,17 @@ public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, i
 }
 
 /// <summary>
-/// Resultado de agregación de logs (por servicio, nivel o fecha).
+/// Resultado de agregación de logs (por servicio, nivel o fecha)
 /// </summary>
 public record LogAggregation(string Key, int Count);
 
 /// <summary>
-/// Solicitud de agregación.
+/// Solicitud de agregación
 /// </summary>
 public record LogAggregationRequest(string GroupBy, DateTimeOffset? From, DateTimeOffset? To);
 
 /// <summary>
-/// DTO de entrada para ingestar un log.
+/// DTO de entrada para ingestar un log
 /// </summary>
 public record IngestLogRequest(
     string ServiceName,
@@ -46,7 +46,7 @@ public record IngestLogRequest(
 );
 
 /// <summary>
-/// DTO de respuesta de un log ingestado.
+/// DTO de respuesta de un log ingestado
 /// </summary>
 public record LogResponse(
     Guid Id,
@@ -59,12 +59,12 @@ public record LogResponse(
 );
 
 /// <summary>
-/// DTO de solicitud de análisis: se envían los identificadores de los logs a analizar.
+/// DTO de solicitud de análisis (se envían los ids de los logs)
 /// </summary>
 public record AnalyzeLogsRequest(IEnumerable<Guid> LogIds);
 
 /// <summary>
-/// DTO de respuesta de un análisis.
+/// DTO de respuesta de un análisis
 /// </summary>
 public record AnalysisResponse(
     Guid Id,
@@ -80,6 +80,6 @@ public record AnalysisResponse(
 );
 
 /// <summary>
-/// Respuesta envuelta para errores consistentes de la API.
+/// Respuesta envuelta para errores de la API (ProblemDetails)
 /// </summary>
 public record ErrorResponse(string Type, string Title, int Status, string Detail, IEnumerable<string>? Errors = null);

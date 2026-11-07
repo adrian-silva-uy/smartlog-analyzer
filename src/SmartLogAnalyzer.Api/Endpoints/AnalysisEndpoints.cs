@@ -1,6 +1,9 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using SmartLogAnalyzer.Core.Dtos;
 using SmartLogAnalyzer.Core.Entities;
 using SmartLogAnalyzer.Core.Interfaces;
@@ -16,7 +19,7 @@ public static class AnalysisEndpoints
     /// Este metodo esta un poco largo, podria refactorizarse pero funciona.
     /// </summary>
     public static async Task<IResult> AnalyzeLogs(
-        AnalyzeLogsRequest request,
+        [FromBody] AnalyzeLogsRequest request,
         ILogRepository logRepository,
         IAnalysisRepository analysisRepository,
         ILLMService llmService,
@@ -30,7 +33,28 @@ public static class AnalysisEndpoints
                 { "LogIds", new[] { "Se debe especificar al menos un log para analizar." } }
             });
 
-        var logs = (await logRepository.GetByIdsAsync(logIds, ct)).ToList();
+        List<LogEntry> logs;
+        try
+        {
+            logs = (await logRepository.GetByIdsAsync(logIds, ct)).ToList();
+        }
+        catch (SqlException)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Base de datos no disponible",
+                detail: "No se pudo conectar con la base de datos para obtener los logs.",
+                type: "database_unavailable");
+        }
+        catch (DbUpdateException)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Base de datos no disponible",
+                detail: "No se pudo consultar los logs en la base de datos.",
+                type: "database_unavailable");
+        }
+
         var missing = logIds.Except(logs.Select(l => l.Id)).ToList();
         if (missing.Count > 0)
             return Results.NotFound(new
@@ -39,7 +63,7 @@ public static class AnalysisEndpoints
                 missingIds = missing
             });
 
-        // Llamada al LLM con timeout propio (el mock respeta cancellationToken y puede simular timeout).
+        // Llamada al LLM con su propio timeout.
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(TimeSpan.FromSeconds(30));
 
@@ -57,8 +81,7 @@ public static class AnalysisEndpoints
             return Results.StatusCode(StatusCodes.Status502BadGateway);
         }
 
-        // Validación de robustez: el LLM debe devolver un formato esperado.
-        // Si devuelve formato inesperado (nulos, valores no string), se rechaza con 502.
+        // Valida que el LLM devuelva el formato esperado.
         if (!IsValidLLMResult(llmResult, out var validationError))
             return Results.StatusCode(StatusCodes.Status502BadGateway);
 
@@ -88,7 +111,26 @@ public static class AnalysisEndpoints
         foreach (var al in analysis.LogEntries)
             al.AnalysisId = analysis.Id;
 
-        await analysisRepository.AddAsync(analysis, ct);
+        try
+        {
+            await analysisRepository.AddAsync(analysis, ct);
+        }
+        catch (SqlException)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Base de datos no disponible",
+                detail: "No se pudo conectar con la base de datos para guardar el análisis.",
+                type: "database_unavailable");
+        }
+        catch (DbUpdateException)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Base de datos no disponible",
+                detail: "No se pudo guardar el análisis en la base de datos.",
+                type: "database_unavailable");
+        }
 
         return Results.Ok(MapToResponse(analysis));
     }
@@ -101,7 +143,28 @@ public static class AnalysisEndpoints
         IAnalysisRepository analysisRepository,
         CancellationToken ct)
     {
-        var analysis = await analysisRepository.GetByIdAsync(id, ct);
+        Analysis? analysis;
+        try
+        {
+            analysis = await analysisRepository.GetByIdAsync(id, ct);
+        }
+        catch (SqlException)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Base de datos no disponible",
+                detail: "No se pudo conectar con la base de datos para obtener el análisis.",
+                type: "database_unavailable");
+        }
+        catch (DbUpdateException)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Base de datos no disponible",
+                detail: "No se pudo consultar el análisis en la base de datos.",
+                type: "database_unavailable");
+        }
+
         if (analysis is null)
             return Results.NotFound(new { error = $"No existe el análisis con id {id}." });
 

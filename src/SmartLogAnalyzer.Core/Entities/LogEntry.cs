@@ -1,8 +1,7 @@
 namespace SmartLogAnalyzer.Core.Entities;
 
 /// <summary>
-/// Niveles de severidad de un log, alineados con los niveles estándar de Serilog / Microsoft.Extensions.Logging.
-/// Se modela como enum para integridad referencial, indexado eficiente y agregaciones sencillas en SQL.
+/// Niveles de severidad de un log (alineados con Serilog / Microsoft.Extensions.Logging).
 /// </summary>
 public enum LogLevel
 {
@@ -24,14 +23,14 @@ public class LogEntry
     public LogLevel Level { get; set; }
     public string Message { get; set; } = default!;
     public DateTimeOffset Timestamp { get; set; }
-    public string? Source { get; set; }           // Origen del log (p. ej. api-gateway, payments-worker)
+    public string? Source { get; set; }           // Origen del log
     public string? TraceId { get; set; }          // Identificador de trazabilidad distribuida
-    public string? Metadata { get; set; }         // JSON arbitrario de metadatos del log
+    public string? Metadata { get; set; }         // Metadatos arbitrarios del log
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
-/// Resultado de un análisis de IA sobre un conjunto de logs. Persistido para auditoría y consulta posterior.
+/// Resultado de un análisis sobre un conjunto de logs. Persistido para auditoría y consulta.
 /// </summary>
 public class Analysis
 {

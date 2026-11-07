@@ -67,24 +67,28 @@ public class LogRepository : ILogRepository
         if (request.To.HasValue)
             query = query.Where(e => e.Timestamp <= request.To.Value);
 
-        return request.GroupBy.ToLowerInvariant() switch
+        // Proyecto a un tipo anónimo con Count() para que EF Core traduzca GROUP BY + COUNT a SQL.
+        // Luego mapeo a LogAggregation en memoria para evitar errores de traducción de LINQ.
+        var rows = request.GroupBy.ToLowerInvariant() switch
         {
             "service" => await query
                 .GroupBy(e => e.ServiceName)
-                .Select(g => new LogAggregation(g.Key!, g.Count()))
-                .OrderByDescending(a => a.Count)
+                .Select(g => new { Key = g.Key!, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
                 .ToListAsync(cancellationToken),
             "level" => await query
                 .GroupBy(e => e.Level.ToString())
-                .Select(g => new LogAggregation(g.Key!, g.Count()))
-                .OrderByDescending(a => a.Count)
+                .Select(g => new { Key = g.Key!, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
                 .ToListAsync(cancellationToken),
             _ => await query
                 .GroupBy(e => e.ServiceName)
-                .Select(g => new LogAggregation(g.Key!, g.Count()))
-                .OrderByDescending(a => a.Count)
+                .Select(g => new { Key = g.Key!, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
                 .ToListAsync(cancellationToken)
         };
+
+        return rows.Select(x => new LogAggregation(x.Key, x.Count)).ToList();
     }
 
     public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default) =>

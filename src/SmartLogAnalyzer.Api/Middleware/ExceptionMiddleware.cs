@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using SmartLogAnalyzer.Core.Dtos;
 
 namespace SmartLogAnalyzer.Api.Middleware;
 
 /// <summary>
 /// Middleware de manejo centralizado de excepciones.
-/// Justificación (senior): toda excepción no controlada se convierte en una respuesta
-/// ProblemDetails (RFC 7807) consistente, sin filtrar stack traces al cliente y con el
-/// código HTTP correcto (504 para timeouts, 500 para el resto).
+/// Req: respuestas de error estandarizadas (ProblemDetails / RFC 7807).
 /// </summary>
 public class ExceptionMiddleware
 {
@@ -27,7 +27,17 @@ public class ExceptionMiddleware
             await WriteProblemAsync(context, StatusCodes.Status504GatewayTimeout,
                 "timeout", "Tiempo de espera agotado procesando la solicitud.");
         }
-        catch (Exception ex)
+        catch (SqlException)
+        {
+            await WriteProblemAsync(context, StatusCodes.Status503ServiceUnavailable,
+                "database_unavailable", "No se pudo conectar con la base de datos en este momento.");
+        }
+        catch (DbUpdateException)
+        {
+            await WriteProblemAsync(context, StatusCodes.Status503ServiceUnavailable,
+                "database_unavailable", "No se pudo completar la operación en la base de datos.");
+        }
+        catch (Exception)
         {
             await WriteProblemAsync(context, StatusCodes.Status500InternalServerError,
                 "server_error", "Ocurrió un error interno procesando la solicitud.");
@@ -41,8 +51,6 @@ public class ExceptionMiddleware
 
         var problem = new ErrorResponse(type, title, status,
             $"Se produjo un error de tipo '{type}' al procesar la solicitud.");
-        // En modo desarrollo se podría enriquecer con stack trace, pero en producción se omite para no exponer información interna.
-
         return context.Response.WriteAsJsonAsync(problem);
     }
 }

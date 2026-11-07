@@ -1,0 +1,17 @@
+bin/
+obj/
+out/
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+.stderr.txt
+.stdout.txt
+.git/
+.gitignore
+README.md
+ARCHITECTURE.md
+.env
+docker-compose.override.yml
+publish/

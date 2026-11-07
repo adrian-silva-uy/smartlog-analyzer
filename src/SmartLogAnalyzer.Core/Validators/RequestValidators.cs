@@ -5,11 +5,7 @@ using SmartLogAnalyzer.Core.Entities;
 namespace SmartLogAnalyzer.Core.Validators;
 
 /// <summary>
-/// Validador de IngestLogRequest. Reglas de negocio:
-///  - ServiceName obligatorio y con longitud razonable.
-///  - Level debe ser un valor válido del enum LogLevel.
-///  - Message obligatorio y con contenido.
-///  - Timestamp no puede estar en el futuro (más allá de unos minutos de tolerancia por desfase de reloj).
+/// Validador de IngestLogRequest (Req: validación de entrada).
 /// </summary>
 public class IngestLogRequestValidator : AbstractValidator<IngestLogRequest>
 {
@@ -44,7 +40,7 @@ public class IngestLogRequestValidator : AbstractValidator<IngestLogRequest>
 }
 
 /// <summary>
-/// Validador de AnalyzeLogsRequest: al menos un identificador de log y ninguno vacío.
+/// Validador de AnalyzeLogsRequest.
 /// </summary>
 public class AnalyzeLogsRequestValidator : AbstractValidator<AnalyzeLogsRequest>
 {
@@ -59,7 +55,7 @@ public class AnalyzeLogsRequestValidator : AbstractValidator<AnalyzeLogsRequest>
 }
 
 /// <summary>
-/// Validador de LogFilter: paginación dentro de rangos razonables.
+/// Validador de LogFilter.
 /// </summary>
 public class LogFilterValidator : AbstractValidator<LogFilter>
 {

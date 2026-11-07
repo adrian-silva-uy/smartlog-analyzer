@@ -8,8 +8,8 @@ namespace SmartLogAnalyzer.Api.Endpoints;
 public static class HealthEndpoints
 {
     /// <summary>
-    /// GET /api/health — Verifica el estado del servicio y la conectividad con la base de datos.
-    /// Endpoint de infraestructura básico (requerido por el desafío).
+    /// GET /api/health — Estado del servicio y conectividad con la base de datos.
+    /// Req: GET /api/health
     /// </summary>
     public static async Task<IResult> Health(
         AppDbContext db,
@@ -18,7 +18,7 @@ public static class HealthEndpoints
         bool databaseReachable = false;
         try
         {
-            // Consulta ligera que valida conectividad sin traer datos.
+            // Ping ligero a la base de datos sin traer datos.
             databaseReachable = await db.Database.CanConnectAsync(ct);
         }
         catch
@@ -27,12 +27,10 @@ public static class HealthEndpoints
         }
 
         var response = new HealthResponse(
-            databaseReachable ? "Healthy" : "Unhealthy",
+            databaseReachable ? "Healthy" : "Degraded",
             DateTimeOffset.UtcNow,
             databaseReachable);
 
-        return databaseReachable
-            ? Results.Ok(response)
-            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        return Results.Ok(response);
     }
 }

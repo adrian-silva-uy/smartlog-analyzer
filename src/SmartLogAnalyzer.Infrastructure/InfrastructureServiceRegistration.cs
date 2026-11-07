@@ -9,11 +9,8 @@ using SmartLogAnalyzer.Infrastructure.Repositories;
 namespace SmartLogAnalyzer.Infrastructure;
 
 /// <summary>
-/// Punto único de registro de la capa de Infraestructura.
-/// Decisiones (documentadas en ARCHITECTURE.md):
-///  - LLM por defecto: MockLLMService (sin costo, sin API key). Se cambia a OpenAILLMService
-///    estableciendo LLM__Provider=openai y las variables de entorno correspondientes.
-///  - Base de datos: SQL Server (proveedor nativo de .NET, excelente soporte en Docker y EF Core).
+/// Registro de servicios de la capa de Infraestructura.
+/// Req: SQL Server + EF Core, LLM mock por defecto y OpenAI como opción.
 /// </summary>
 public static class InfrastructureServiceRegistration
 {
@@ -34,8 +31,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<ILogRepository, LogRepository>();
         services.AddScoped<IAnalysisRepository, AnalysisRepository>();
 
-        // Selección de proveedor de LLM. Por defecto mock realista (sin costo, sin API key).
-        // Para usar la integración real con OpenAI: LLM__Provider=openai + LLM__ApiKey.
+        // Req: LLM integration — mock real por defecto, OpenAI como esqueleto.
         var llmProvider = configuration["LLM__Provider"] ?? "mock";
 
         if (llmProvider == "openai")

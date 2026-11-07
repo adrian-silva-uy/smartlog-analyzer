@@ -17,9 +17,7 @@ using SmartLogAnalyzer.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ─── Logging estructurado (Serilog) ─────────────────────────────────────────
-// Justificación: en un analizador de logs es incoherente no usar logging estructurado.
-// Serilog brinda enriquecimiento, sinks (consola/archivo/SEQ) y formato JSON listo para producción.
+// ─── Logging estructurado (Serilog) — Req: logging estructurado ─────────────
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -31,21 +29,18 @@ builder.Host.UseSerilog();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // DbContext se registra dentro de AddInfrastructure (SQL Server con retry policy).
-// Se aplica el seed automáticamente al arrancar para que la app esté lista tras `docker compose up`.
-builder.Services.AddHostedService<SeedHostedService>();
+// El seed se aplica manualmente con: dotnet ef database update
+// builder.Services.AddHostedService<SeedHostedService>();
 
-// FluentValidation: validadores registrados desde el ensamblado de Core.
-// ASP.NET Core los aplica automáticamente a los parámetros bound de los minimal APIs (400 ValidationProblem).
-// Registro explícito de validadores como IValidator<T>. ASP.NET Core los aplica automáticamente
-// a los parámetros bound de los minimal APIs, devolviendo 400 ValidationProblem cuando fallan.
+// Req: validación de entrada con FluentValidation
 builder.Services.AddScoped<IValidator<IngestLogRequest>, IngestLogRequestValidator>();
 builder.Services.AddScoped<IValidator<AnalyzeLogsRequest>, AnalyzeLogsRequestValidator>();
 builder.Services.AddScoped<IValidator<LogFilter>, LogFilterValidator>();
 
-// ProblemDetails: respuestas de error estandarizadas (RFC 7807) con código HTTP correcto.
+// Req: respuestas de error estandarizadas (ProblemDetails / RFC 7807)
 builder.Services.AddProblemDetails();
 
-// OpenAPI / Swagger: documentación automática de la API (extra justificado: facilita el consumo y pruebas).
+// Req: Swagger/OpenAPI en la raíz /
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -64,13 +59,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => c.RoutePrefix = string.Empty); // Swagger en la raíz /
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseMiddleware<ExceptionMiddleware>();
 }
 
-// Manejo centralizado de excepciones: convierte excepciones no controladas en respuestas
-// ProblemDetails consistentes con código HTTP adecuado (500 por defecto).
-app.UseMiddleware<ExceptionMiddleware>();
-
-app.UseStatusCodePages(); // Devuelve cuerpo para códigos de estado sin body (ej. 404).
+app.UseStatusCodePages(); // Devuelve cuerpo para estados sin body (ej. 404).
 
 // ─── Endpoints ──────────────────────────────────────────────────────────────
 var logs = app.MapGroup("/api/logs");
@@ -120,9 +116,8 @@ public record HealthResponse(string Status, DateTimeOffset CheckedAt, bool Datab
 // TODO: agregar mas informacion al health (memoria, disco, etc.) cuando tengamos tiempo
 
 /// <summary>
-/// Servicio en segundo plano que aplica migraciones y seed al arrancar la aplicación.
-/// Justificación: permite que `docker compose up` levante todo sin pasos manuales adicionales,
-/// cumpliendo el requisito de despliegue con un solo comando.
+/// Servicio en segundo plano que aplica migraciones y seed al arrancar.
+/// Req: despliegue con un solo comando (docker compose up).
 /// </summary>
 public class SeedHostedService : IHostedService
 {
@@ -139,7 +134,7 @@ public class SeedHostedService : IHostedService
     {
         using var scope = _services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        try
+                try
         {
             await db.Database.MigrateAsync(cancellationToken);
             await SeedData.InitializeAsync(db);
@@ -147,8 +142,7 @@ public class SeedHostedService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al migrar/sembrar la base de datos.");
-            throw;
+            _logger.LogWarning(ex, "No se pudo migrar/sembrar la base de datos al arrancar. La aplicación continuará sin base de datos.");
         }
     }
 
@@ -156,7 +150,7 @@ public class SeedHostedService : IHostedService
 }
 
 /// <summary>
-/// Mapeo de entidades a DTOs de respuesta. Separado para mantener los endpoints libres de lógica de presentación.
+/// Mapeo de entidades a DTOs de respuesta.
 /// </summary>
 public static class LogMapping
 {

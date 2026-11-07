@@ -4,8 +4,7 @@ using SmartLogAnalyzer.Core.Entities;
 namespace SmartLogAnalyzer.Core.Interfaces;
 
 /// <summary>
-/// Contrato del repositorio de logs. Abstrae la persistencia para que la capa de aplicación
-/// no dependa de Entity Framework ni de ningún proveedor de base de datos concreto.
+/// Contrato del repositorio de logs.
 /// </summary>
 public interface ILogRepository
 {
@@ -17,7 +16,7 @@ public interface ILogRepository
 }
 
 /// <summary>
-/// Contrato del repositorio de análisis de IA.
+/// Contrato del repositorio de análisis.
 /// </summary>
 public interface IAnalysisRepository
 {
@@ -27,8 +26,8 @@ public interface IAnalysisRepository
 }
 
 /// <summary>
-/// Contrato de integración con el LLM. Detrás de esta interfaz puede convivir un mock realista
-/// (para no gastar API keys) y la integración real con cualquier proveedor (OpenAI, Anthropic, Gemini, local).
+/// Contrato de integración con el LLM.
+/// Req: LLM integration — mock real por defecto, OpenAI como esqueleto.
 /// </summary>
 public interface ILLMService
 {
