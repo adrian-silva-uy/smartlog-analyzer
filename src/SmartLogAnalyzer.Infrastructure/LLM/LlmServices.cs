@@ -25,10 +25,10 @@ public class MockLLMService : ILLMService
         var logList = logs.ToList();
         if (logList.Count == 0)
         {
-            // Lista vacía: devolver resultado vacío para no romper el endpoint.
+            // Lista vacía: devuelve resultado vacío y no rompe el endpoint.
             return new LLMAnalysisResult("No hay logs para analizar.", Enumerable.Empty<string>(), Enumerable.Empty<string>());
         }
-        // El mock no replica exactamente el formato de OpenAI. Con LLM__Provider=openai ajustar el mapeo en OpenAILLMService.
+        // El mock no replica exactamente el formato de OpenAI. Con LLM__Provider=openai ajusta el mapeo en OpenAILLMService.
         var envDelay = Environment.GetEnvironmentVariable("MOCK_LLM_DELAY_MS");
         var delayMs = string.IsNullOrWhiteSpace(envDelay) || !int.TryParse(envDelay ?? string.Empty, out var parsed)
             ? 400

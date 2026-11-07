@@ -68,7 +68,7 @@ public class LogRepository : ILogRepository
             query = query.Where(e => e.Timestamp <= request.To.Value);
 
         // Proyecto a un tipo anónimo con Count() para que EF Core traduzca GROUP BY + COUNT a SQL.
-        // Luego mapeo a LogAggregation en memoria para evitar errores de traducción de LINQ.
+        // Luego mapeo a LogAggregation en memoria, para que evite errores de traducción de LINQ.
         var rows = request.GroupBy.ToLowerInvariant() switch
         {
             "service" => await query
