@@ -1,7 +1,10 @@
-bin/
-obj/
+**/bin/
+**/obj/
+tests/
 out/
 .vs/
+.git/
+*.zip
 *.user
 *.userosscache
 *.suo

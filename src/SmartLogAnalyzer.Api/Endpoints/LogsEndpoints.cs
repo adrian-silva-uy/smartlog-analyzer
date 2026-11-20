@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 using SmartLogAnalyzer.Core.Dtos;
 using SmartLogAnalyzer.Core.Entities;
 using CoreLogLevel = SmartLogAnalyzer.Core.Entities.LogLevel;
@@ -20,8 +21,13 @@ public static class LogsEndpoints
     public static async Task<IResult> IngestLog(
         [FromBody] IngestLogRequest request,
         ILogRepository repository,
+        IValidator<IngestLogRequest> validator,
         CancellationToken ct)
     {
+        var validation = await validator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+            return Results.ValidationProblem(ToValidationErrors(validation));
+
         if (!Enum.TryParse<CoreLogLevel>(request.Level, true, out var level))
         {
             // Defensa extra por si el validador se salta algo.
@@ -80,7 +86,8 @@ public static class LogsEndpoints
         DateTimeOffset? to = null,
         string? search = null,
         int page = 1,
-        int pageSize = 50)
+        int pageSize = 50,
+        IValidator<LogFilter>? validator = null)
     {
         var filter = new LogFilter
         {
@@ -92,6 +99,12 @@ public static class LogsEndpoints
             Page = page,
             PageSize = pageSize
         };
+        if (validator is not null)
+        {
+            var validation = await validator.ValidateAsync(filter, ct);
+            if (!validation.IsValid)
+                return Results.ValidationProblem(ToValidationErrors(validation));
+        }
         try
         {
             var result = await repository.GetAsync(filter, ct);
@@ -115,6 +128,11 @@ public static class LogsEndpoints
                 type: "database_unavailable");
         }
     }
+
+    private static Dictionary<string, string[]> ToValidationErrors(FluentValidation.Results.ValidationResult validation) =>
+        validation.Errors
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(group => group.Key, group => group.Select(error => error.ErrorMessage).ToArray());
 
     /// <summary>
     /// GET /api/logs/aggregation — Consulta de agregación requerida por el desafío.

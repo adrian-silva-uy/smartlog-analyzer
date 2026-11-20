@@ -11,7 +11,10 @@ public static class SeedData
 {
     public static async Task InitializeAsync(AppDbContext db)
     {
-        await db.Database.MigrateAsync();
+        if (db.Database.IsRelational())
+            await db.Database.MigrateAsync();
+        else
+            await db.Database.EnsureCreatedAsync();
 
         if (await db.LogEntries.AnyAsync())
             return; // Ya existe información, no se vuelve a sembrar.

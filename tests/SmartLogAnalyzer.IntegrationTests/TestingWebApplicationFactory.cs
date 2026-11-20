@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using SmartLogAnalyzer.Infrastructure.Data;
 using SmartLogAnalyzer.Core.Interfaces;
@@ -26,7 +28,8 @@ public class TestingWebApplicationFactory : WebApplicationFactory<Program>
             var descriptors = services
                 .Where(d => d.ServiceType == typeof(AppDbContext)
                          || d.ServiceType == typeof(DbContextOptions<AppDbContext>)
-                         || d.ServiceType == typeof(DbContextOptions))
+                          || d.ServiceType == typeof(DbContextOptions)
+                          || d.ServiceType == typeof(IDbContextOptionsConfiguration<AppDbContext>))
                 .ToList();
             foreach (var descriptor in descriptors)
                 services.Remove(descriptor);

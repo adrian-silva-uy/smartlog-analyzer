@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using SmartLogAnalyzer.IntegrationTests;
+using Xunit;
 
 namespace SmartLogAnalyzer.IntegrationTests.Endpoints;
 

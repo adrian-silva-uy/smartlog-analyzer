@@ -4,6 +4,7 @@ using System.Text.Json;
 using FluentAssertions;
 using SmartLogAnalyzer.Core.Dtos;
 using SmartLogAnalyzer.IntegrationTests;
+using Xunit;
 
 namespace SmartLogAnalyzer.IntegrationTests.Endpoints;
 

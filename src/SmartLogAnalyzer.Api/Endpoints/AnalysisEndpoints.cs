@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -23,8 +24,13 @@ public static class AnalysisEndpoints
         ILogRepository logRepository,
         IAnalysisRepository analysisRepository,
         ILLMService llmService,
+        IValidator<AnalyzeLogsRequest> validator,
         CancellationToken ct)
     {
+        var validation = await validator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+            return Results.ValidationProblem(ToValidationErrors(validation));
+
         var logIds = request.LogIds.Distinct().ToList();
 
         if (logIds.Count == 0)
@@ -196,6 +202,11 @@ public static class AnalysisEndpoints
 
         return true;
     }
+
+    private static Dictionary<string, string[]> ToValidationErrors(FluentValidation.Results.ValidationResult validation) =>
+        validation.Errors
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(group => group.Key, group => group.Select(error => error.ErrorMessage).ToArray());
 
     private static AnalysisResponse MapToResponse(Analysis analysis)
     {

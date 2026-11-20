@@ -138,9 +138,13 @@ public class SeedHostedService : IHostedService
     {
         using var scope = _services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                try
+        try
         {
-            await db.Database.MigrateAsync(cancellationToken);
+            if (db.Database.IsRelational())
+                await db.Database.MigrateAsync(cancellationToken);
+            else
+                await db.Database.EnsureCreatedAsync(cancellationToken);
+
             await SeedData.InitializeAsync(db);
             _logger.LogInformation("Base de datos migrada y sembrada correctamente.");
         }
