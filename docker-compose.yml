@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ---------------------------
   # Base de datos SQL Server
@@ -8,14 +6,14 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: ${DB_PASSWORD:?Variable DB_PASSWORD es requerida}
+      SA_PASSWORD: ${DB_PASSWORD:-LocalDev_2026!Change}
       MSSQL_PID: Express
     ports:
       - "1433:1433"
     volumes:
       - smartlog_db_data:/var/opt/mssql
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P '${DB_PASSWORD}' -Q 'SELECT 1' || exit 1" ]
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P '${DB_PASSWORD:-LocalDev_2026!Change}' -Q 'SELECT 1' || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 20
@@ -32,12 +30,12 @@ services:
       db:
         condition: service_healthy
     environment:
-      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=SmartLogAnalyzer;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True"
-      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=SmartLogAnalyzer;User Id=sa;Password=${DB_PASSWORD:-LocalDev_2026!Change};TrustServerCertificate=True"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080
       LLM__Provider: ${LLM__Provider:-mock}
-      LLM__ApiKey: ${LLM__ApiKey}
-      LLM__BaseUrl: https://api.openai.com/v1
+      LLM__ApiKey: ${LLM__ApiKey:-}
+      LLM__BaseUrl: ${LLM__BaseUrl:-https://api.openai.com/v1}
     ports:
       - "8080:8080"
 

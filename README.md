@@ -24,24 +24,87 @@ smartlog-analyzer/
 ## Requisitos
 
 - .NET 10 SDK
-- Docker y Docker Compose (para levantar con un solo comando)
-- SQL Server 2022 Express (o SQL Server en contenedor)
+- Docker Desktop con Docker Compose V2 (para levantar la solución completa)
+- SQL Server 2022 Express o una instancia local de SQL Server (solo para ejecución sin Docker)
 
-## Cómo levantar
+## Ejecución con Docker
 
-```bash
-cd src/SmartLogAnalyzer.Api
-dotnet restore
-dotnet run
+Desde la raíz del repositorio:
+
+```powershell
+docker compose up
 ```
 
-La aplicación queda en `http://localhost:5000` (o el puerto configurado en `launchSettings.json`).
+No es necesario crear `.env` para la primera ejecución: Compose utiliza una contraseña local de demostración que cumple la política de complejidad de SQL Server. Para personalizarla, copiar `.env.example` como `.env` y modificar sus valores.
 
-Para usar Docker:
+Compose construye la imagen de la API, inicia SQL Server, espera a que el healthcheck de la base de datos sea correcto y recién entonces inicia la API. La aplicación aplica las migraciones de Entity Framework Core y ejecuta el seed al arrancar.
 
-```bash
-docker-compose up --build
+Comandos útiles:
+
+```powershell
+# Ejecutar en segundo plano
+docker compose up -d
+
+# Ver el estado de los servicios
+docker compose ps
+
+# Ver los logs de todos los servicios
+docker compose logs -f
+
+# Detener los servicios conservando los datos
+docker compose down
+
+# Detener y eliminar también el volumen de SQL Server
+docker compose down -v
 ```
+
+`docker compose down -v` elimina permanentemente los datos persistidos del volumen `smartlog_db_data`.
+
+### Puertos
+
+| Servicio | Puerto del host | Uso |
+|---|---:|---|
+| API | 8080 | Acceso HTTP a SmartLog Analyzer (`http://localhost:8080`) |
+| SQL Server | 1433 | Acceso a SQL Server desde el host |
+
+Swagger está habilitado únicamente en el entorno `Development`, por lo que no se expone al ejecutar el Compose con la configuración predeterminada `Production`.
+
+### Red Docker
+
+Compose crea una red bridge para los servicios. La API se conecta a SQL Server mediante el nombre DNS interno del servicio, `db:1433`; no utiliza `localhost` para la comunicación entre contenedores.
+
+### Variables de entorno
+
+Las variables se leen desde `.env` si existe. `.env.example` es una plantilla y no contiene credenciales reales.
+
+| Variable | Obligatoria | Valor predeterminado | Descripción |
+|---|---|---|---|
+| `DB_PASSWORD` | No | `LocalDev_2026!Change` | Contraseña local de la cuenta `sa` de SQL Server. Reemplazar en entornos reales. |
+| `LLM__Provider` | No | `mock` | Proveedor de IA: `mock` u `openai`. |
+| `LLM__ApiKey` | No | Vacío | Clave del proveedor real; no es necesaria con `mock`. |
+| `LLM__BaseUrl` | No | `https://api.openai.com/v1` | URL base del proveedor de IA. |
+| `ASPNETCORE_ENVIRONMENT` | No | `Production` | Entorno de ejecución de ASP.NET Core. |
+
+Para configurar valores propios:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up
+```
+
+El archivo `.env` está excluido de Git y de la imagen mediante `.gitignore` y `.dockerignore`.
+
+## Ejecución local sin Docker
+
+Se necesita una instancia accesible de SQL Server y configurar la cadena `ConnectionStrings:DefaultConnection` en `src/SmartLogAnalyzer.Api/appsettings.Development.json` o mediante variables de entorno. Por ejemplo, en PowerShell:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "Server=localhost,1433;Database=SmartLogAnalyzer;User Id=sa;Password=LocalDev_2026!Change;TrustServerCertificate=True"
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+dotnet run --project src/SmartLogAnalyzer.Api
+```
+
+La aplicación queda disponible en el puerto indicado por `launchSettings.json` (habitualmente `http://localhost:5000`). En `Development`, Swagger queda disponible en la raíz `/`.
 
 ## Endpoints
 
@@ -95,11 +158,19 @@ POST /api/logs/analyze
 
 ## Variables de entorno
 
-Copiar `.env.example` a `.env` y ajustar los valores.
+Consultar la tabla de variables de la sección [Ejecución con Docker](#variables-de-entorno). Para Docker, la copia de `.env.example` es opcional porque Compose define valores locales predeterminados.
 
-## Base de datos
+## Base de datos, migraciones y seed
 
-Se utiliza SQL Server. El seed de datos se aplica automáticamente al arrancar si la base de datos está vacía.
+Se utiliza SQL Server. Al arrancar, `SeedHostedService` espera a que la conexión esté disponible, ejecuta `Database.MigrateAsync()` para aplicar las migraciones de Entity Framework Core y llama a `SeedData.InitializeAsync()`. El seed agrega datos de ejemplo únicamente cuando la tabla de logs está vacía, por lo que reiniciar la API no duplica los registros.
+
+El flujo es el siguiente:
+
+1. SQL Server arranca en el servicio `db`.
+2. Docker Compose espera el healthcheck de SQL Server.
+3. La API inicia después de que `db` está saludable.
+4. Entity Framework Core crea o actualiza el esquema mediante las migraciones.
+5. El seed inserta los datos de ejemplo si todavía no existen.
 
 ## Uso de IA durante el desarrollo
 
@@ -130,5 +201,4 @@ Los scripts de migración **no se perdieron**: están disponibles en el código 
 ## Tests
 
 ```bash
-dotnet test
-```
+dotnet test SmartLogAnalyzer.slnx --verbosity normal```

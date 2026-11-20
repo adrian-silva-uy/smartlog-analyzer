@@ -36,13 +36,13 @@ public static class InfrastructureServiceRegistration
 
         if (llmProvider == "openai")
         {
-            var apiKey = configuration["LLM__ApiKey"];
+            var apiKey = configuration["LLM:ApiKey"];
             if (string.IsNullOrWhiteSpace(apiKey))
                 throw new InvalidOperationException("LLM__ApiKey es obligatoria cuando LLM__Provider=openai.");
 
             services.AddHttpClient<ILLMService, OpenAILLMService>(client =>
             {
-                client.BaseAddress = new Uri(configuration["LLM__BaseUrl"] ?? "https://api.openai.com/v1");
+                client.BaseAddress = new Uri(configuration["LLM:BaseUrl"] ?? "https://api.openai.com/v1");
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
         }
